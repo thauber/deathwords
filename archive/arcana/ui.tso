@@ -1,0 +1,95 @@
+import "./style.css"
+import { PlayState, Initiative } from '../play.ts';
+import { GameBoard, Wizard, GameAction, DraftEngine as GameEngine } from './engine.ts';
+import { DraftDeck } from '../deck.ts';
+import V from '../vee.ts';
+import { Play } from '../play.ts';
+
+
+
+
+export const DEFAULT_BOARD:GameBoard = {
+  wizards: [{
+    pole: "north",
+    health: 20,
+    bank: {
+      current: 0,
+      max: 2,
+      actedAt: 0,
+      stored: 0,
+    },
+    fields: {
+      deck: DraftDeck,
+      hand: [],
+      field: [],
+      graveyard: [],
+      void: [],
+    }
+  }, {
+    pole: "south",
+    health: 20,
+    bank: {
+      current: 0,
+      max: 2,
+      actedAt: 0,
+      stored: 0,
+    },
+    fields: {
+      deck: DraftDeck,
+      hand: [],
+      field: [],
+      graveyard: [],
+      void: [],
+    }
+  }],
+};
+
+// Wizard board displays
+// with a actions log side bar
+
+function WizardCard({wizard, className, act}:{wizard:Wizard, className:string, act:(initiative:Initiative<GameAction>)=>void}) {
+
+  const wiz = 
+  V.div({
+    className: `wizard flex-col items-center justify-center ${className}`
+  }).V(
+    V.div({className: 'font-bold'}).V(wizard.pole),
+    V.div().V(wizard.health),
+    V.div().V(
+      V.span('Bank:', {className: 'font-bold'}).V('Bank:'),
+      V.span(`${wizard.bank.current}/${wizard.bank.max}`)
+    )
+  )
+  wiz.addEventListener('click', function () {
+    act(
+      {
+        stack: 'self',
+        cardIndex: 0,
+      }
+    )
+  })
+  return wiz;
+}
+
+type ArcanaAppProps = {
+  gameState: PlayState<GameBoard, GameAction>
+}
+export const ArcanaApp = ({ gameState }:ArcanaAppProps) => {
+  const {act, pole, board} = gameState
+  const app = {
+    current: V.div().V(
+      WizardCard({act, wizard: board.wizards[pole==='north'?1:0], className: 'absolute top-0'}),
+      WizardCard({act, wizard: board.wizards[pole==='north'?0:1], className: 'absolute bottom-0'})
+    )
+  }
+  Play('arcana', GameEngine, DEFAULT_BOARD, (playState) => {
+    app.current.innerHTML = ''
+    app.current.append(ArcanaApp({gameState: playState}))
+  })
+  return app.current
+};
+
+
+ArcanaApp.ref = (container: HTMLElement) => {
+  return 
+}

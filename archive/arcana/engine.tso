@@ -1,0 +1,159 @@
+//A Blitz Chess game on a 4x6 board
+
+import { Action, Pole } from "../play"
+import { Card } from "../deck"
+
+// const DEBUG = false
+// const DEBUG = true
+
+type TempoBank = {
+  current: Number  // (calculated / readonly)
+  max: Number // (calculated / readonly)
+  actedAt: Number
+  stored : Number
+}
+
+// U = Uncolored
+// W = White
+// B = Blue
+// R = Red
+// G = Green
+// K = Black
+// A = Any
+
+type Target = {
+}
+
+export interface Wizard extends Target {
+  pole: Pole
+  bank: TempoBank
+  health: number
+  fields: {
+    deck: Card[]
+    hand: Card[]
+    field: Card[]
+    graveyard: Card[]
+    void: Card[]
+  }
+}
+
+export type GameBoard = {
+  wizards: Wizard[]
+  actions: GameAction[]
+}
+
+// const FireballCard = {
+//   type: 'spell',
+//   abilities: [
+//     {
+//       cost: [{ party: '$actor', bank: [''] }],
+//       effects: [{ party: '$source', token: 1 }],
+//       text: 'Gain 1 token'
+//     }
+//     {
+//       cost: [{ party: '$actor', magic: { health: -1 } }],
+//       effects: [{ party: '$source', token: 1 }],
+//       text: 'Gain 1 token'
+//     }
+//   ]
+// }
+
+
+export const testEngine = (board:GameBoard, action:GameAction):GameBoard => {
+  board.actions.push(action)
+  board = {...board,
+    actions: [...board.actions, action],
+    wizards: board.wizards.map((wizard) => {
+      if (action.pole == wizard.pole) return wizard
+      return {
+        ...wizard,
+        health: wizard.health - 1,
+      }
+    })
+  }
+  return board
+}
+
+export interface DraftBoard {
+  field: Card[]
+  decks: Record<Pole, Card[]>
+}
+
+export interface DraftAction extends Action {
+  cardIndex: number,
+}
+
+export const DraftEngine = (board:DraftBoard, action:GameAction):DraftBoard => {
+  const newCard = board.field.slice(action.cardIndex, 1)[0]
+  if (!newCard) {
+    throw "Card index out of bounds"
+  }
+  board.decks[action.pole] = [...board.decks[action.pole], newCard]
+  return board
+}
+
+export interface GameAction extends Action {
+  stack: keyof Wizard['fields'],
+  cardIndex: number,
+  abilityIndex?: number,
+  field?: keyof Wizard['fields'],
+  fieldIndex?: number,
+}
+
+export const engine = (board:GameBoard, action:GameAction):GameBoard => {
+    
+  const { id, pole, stack, cardIndex, abilityIndex, field, fieldIndex } = action;
+  if (board.actions.some((a) => a.id == id)) {
+    return board;
+  }
+  const wizard = board.wizards.find((w) => w.pole === pole);
+  if (!wizard) {
+    return board;
+  }
+  const source = wizard.fields[stack];
+  const card = source[cardIndex];
+  if (!card) {
+    return board;
+  }
+  const ability = card.abilities[abilityIndex || 0];
+  if (!ability) {
+    return board;
+  }
+  console.log("Targeting:", field, fieldIndex);
+  // Perform the effects of the ability
+  ability.effects.forEach((effect) => {
+    const { party, magic } = effect;
+
+    if (party === "$target") {
+      // Apply the effect to the target
+      // ...
+    } else if (party === "$actor") {
+      // Apply the effect to the actor
+      // ...
+    } else if (party === "$source") {
+      // Apply the effect to the source
+      // ...
+    }
+
+    if ('health' in magic) {
+      // Update the health of the target, actor, or source
+      // ...
+    }
+    if ('status' in magic) {
+      // const { status: statusEffect, action: statusAction } = magic;
+      // Apply or remove the status effect to the target, actor, or source
+      // ...
+    }
+    if ('token' in magic) {
+      // Update the token count of the target, actor, or source
+      // ...
+    }
+    if ('bank' in magic ) {
+      // const { bank: bankEffect, action: bankAction } = bank;
+      // Update the bank of the target, actor, or source
+      // ...
+    }
+      
+  });
+  return board
+}

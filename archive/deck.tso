@@ -1,0 +1,127 @@
+type Code = "U" | "W" | "B" | "R" | "G" | "K" | "A"
+type Time = Code[]
+type CardType = "spell" | "creature" | "enchantment" | "artifact"
+
+export type Card = {
+  cost: Time
+  abilities: Ability[]
+  type: CardType
+}
+
+type Status = "poisoned" | "burned" | "frozen" | "stunned" | "silenced" | "bleeding" | "blinded" | "charmed" | "confused" | "cursed" | "deafened" | "diseased" | "exhausted" | "frightened" | "grappled" | "incapacitated" | "invisible" | "paralyzed" | "petrified" | "prone" | "restrained" | "unconscious" | "weakened" | "blinded" | "charmed" | "confused" | "cursed" | "deafened" | "diseased" | "exhausted" | "frightened" | "grappled" | "incapacitated" | "invisible" | "paralyzed" | "petrified" | "prone" | "restrained" | "unconscious" | "weakened"
+
+// Effect represents the outcome of an ability or action
+// It specifies the target of the effect and the magical change to be applied
+// party: Indicates who the effect applies to ('$target', '$actor', or '$source')
+// Effect represents the outcome of an ability or action
+// It specifies the target of the effect and the magical change to be applied
+// party: Indicates who the effect applies to:
+//   - '$target': The effect is applied to the target of the ability or action
+//   - '$actor': The effect is applied to the entity performing the action
+//   - '$source': The effect is applied to the source of the ability (e.g., the card itself)
+//
+// magic: Describes the magical effect, which can be one of:
+//   - health change
+//   - status effect addition/removal
+//   - token manipulation
+//   - mana bank modification
+
+
+
+type Effect = {
+  party: '$target' | '$actor' | '$source'
+  magic: { health: Number } | { token: Number } | { bank: Time, action:'accumulate' | 'spend' } | { transition: keyof Wizard['fields'] }
+}
+
+type Ability = {
+  cost: Effect[]
+  effects: Effect[]
+  text: string
+}
+
+export const DraftDeck:Card[] = [
+  {
+    name: "Fireball",
+    cost: ["R", "R"],
+    type: "spell",
+    abilities: [
+      {
+        name: "Blast",
+        effects: [
+          {
+            party: "$target",
+            magic: {
+              health: -4
+            }
+          }
+        ]
+      }
+    ],
+    description: "Hurls a fiery sphere that deals 4 damage to the target."
+  },
+  {
+    name: "Radiant Light",
+    cost: ["U", "W"],
+    type: "spell",
+    abilities: [
+      {
+        name: "Illuminate",
+        effects: [
+          {
+            party: "$target",
+            magic: {
+              health: 2
+            }
+          },
+          {
+            party: "$actor",
+            magic: {
+              bank: {
+                action: "add",
+                amount: 1
+              }
+            }
+          }
+        ]
+      }
+    ],
+    description: "Bathes the target in healing light, restoring 2 health and adding 1 mana to your bank."
+  },
+  {
+    name: "Heal",
+    cost: ["W", "W"],
+    type: "spell",
+    abilities: [
+      {
+        name: "Heal",
+        effects: [
+          {
+            party: "$target",
+            magic: {
+              health: 2
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    name: "Dissuade",
+    cost: ["B", "B"],
+    type: "spell",
+    abilities: [
+      {
+        name: "Counter",
+        effects: [
+          {
+            party: "$target",
+            magic: {
+              counter: true
+            }
+          }
+        ]
+      }
+    ],
+    description: "Counters target spell or ability."
+  },
+]
